@@ -10,7 +10,7 @@ public class BulletController : MonoBehaviour
     {
         GameManager gameManager = Object.FindFirstObjectByType<GameManager>();
         audioSource = gameManager.GetComponent<AudioSource>(); // Lấy AudioSource từ GameObject này
-        hitClip = gameManager.GetHitAudio();
+        // hitClip = gameManager.GetHitAudio();
     }
     void Update()
     {

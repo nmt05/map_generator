@@ -2,7 +2,6 @@ using UnityEngine;
 
 public class CanvasManager : MonoBehaviour
 {
-    // Tạo Singleton Instance đúng kiểu dữ liệu CanvasManager
     public static CanvasManager Instance { get; private set; }
     [SerializeField] public Transform mainCanvasmanager;
     private string uiPrefabPath = "Prefabs/UI/";
@@ -13,7 +12,7 @@ public class CanvasManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+
         }
         else
         {

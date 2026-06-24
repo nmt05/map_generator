@@ -8,20 +8,20 @@ public class SpeedBuff : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         // Kiểm tra xem có phải người chơi nhặt được không
-        if (other.CompareTag("Player"))
-        {
-            // Tìm script di chuyển trên người chơi (trong code của bạn là ExampleInput2)
-            PlayerController playerMovement = other.GetComponent<PlayerController>();
+        // if (other.CompareTag("Player"))
+        // {
+        //     // Tìm script di chuyển trên người chơi (trong code của bạn là ExampleInput2)
+        //     PlayerController playerMovement = other.GetComponent<PlayerController>();
             
-            if (playerMovement != null)
-            {
-                // Gọi một Coroutine trên Player để tăng tốc rồi tự giảm sau vài giây
-                playerMovement.StartCoroutine(playerMovement.ApplySpeedBoost(speedBoostAmount, duration));
-            }
+        //     if (playerMovement != null)
+        //     {
+        //         // Gọi một Coroutine trên Player để tăng tốc rồi tự giảm sau vài giây
+        //         playerMovement.StartCoroutine(playerMovement.ApplySpeedBoost(speedBoostAmount, duration));
+        //     }
 
-            // Hủy vật phẩm buff này đi sau khi ăn
-            Destroy(gameObject);
+        //     // Hủy vật phẩm buff này đi sau khi ăn
+        //     Destroy(gameObject);
 
-        }
+        // }
     }
 }

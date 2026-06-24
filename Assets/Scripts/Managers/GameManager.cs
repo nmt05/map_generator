@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -6,15 +7,16 @@ public class GameManager : MonoBehaviour
     public float bulletSpeed = 10f;
     public float survivalTimer = 15f; // Thời gian sống sót cần thiết để chiến thắng
     public bool IsGameOver { get; private set; } = false; // Biến
-    public AudioSource audioSource;
-    public AudioClip shoot;
-    public AudioClip hit;
-    public AudioClip theme;
-    public AudioClip dash;
-    public AudioClip jump;
-    public AudioClip killed;
+    // public AudioSource audioSource;
+    // public AudioClip shoot;
+    // public AudioClip hit;
+    // public AudioClip theme;
+    // public AudioClip dash;
+    // public AudioClip jump;
+    // public AudioClip killed;
 
     [SerializeField] private Transform UIRoot;
+    [SerializeField] private CameraControl cam;
     void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -22,13 +24,13 @@ public class GameManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
-            theme = GetThemeAudio();
-            audioSource = gameObject.AddComponent<AudioSource>();
-            if (theme != null)            {
-                audioSource.clip = theme;
-                audioSource.Play();
-                audioSource.loop = true; 
-            }
+            // theme = GetThemeAudio();
+            // audioSource = gameObject.AddComponent<AudioSource>();
+            // if (theme != null)            {
+            //     audioSource.clip = theme;
+            //     audioSource.Play();
+            //     audioSource.loop = true; 
+            // }
         }
         else
         {
@@ -49,7 +51,7 @@ public class GameManager : MonoBehaviour
 
         // Mỗi giây trôi qua, trừ bớt thời gian vào biến đếm ngược
         survivalTimer -= Time.deltaTime;
-
+        cam.Move();
         // // KHI THỜI GIAN ĐẾM NGƯỢC VỀ 0 HOẶC NHỎ HƠN 0
         // if (survivalTimer <= 0)
         // {
@@ -70,28 +72,28 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("Defeat!");
     }
-    public AudioClip GetShootAudio()
-    {
-        return shoot;
-    }
-    public AudioClip GetHitAudio()
-    {
-        return hit;
-    }
-    public AudioClip GetThemeAudio()
-    {
-        return theme;
-    }
-    public AudioClip GetDashAudio()
-    {
-        return dash;
-    }
-    public AudioClip GetJumpAudio()
-    {
-        return jump;
-    }
-    public AudioClip GetKilledAudio()
-    {
-        return killed;
-    }
+    // public AudioClip GetShootAudio()
+    // {
+    //     return shoot;
+    // }
+    // public AudioClip GetHitAudio()
+    // {
+    //     return hit;
+    // }
+    // public AudioClip GetThemeAudio()
+    // {
+    //     return theme;
+    // }
+    // public AudioClip GetDashAudio()
+    // {
+    //     return dash;
+    // }
+    // public AudioClip GetJumpAudio()
+    // {
+    //     return jump;
+    // }
+    // public AudioClip GetKilledAudio()
+    // {
+    //     return killed;
+    // }
 }

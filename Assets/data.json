@@ -1,0 +1,27 @@
+{
+    "SaveData": {
+        "savedLevel": 3
+    },
+    "LevelsDataset": [
+        {
+            "Level": 1,
+            "NumberOfEnemies": 1
+        },
+        {
+            "Level": 2,
+            "NumberOfEnemies": 2
+        },
+        {
+            "Level": 3,
+            "NumberOfEnemies": 3
+        },
+        {
+            "Level": 4,
+            "NumberOfEnemies": 4
+        },
+        {
+            "Level": 5,
+            "NumberOfEnemies": 5
+        }
+    ]
+}

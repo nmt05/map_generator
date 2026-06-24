@@ -10,13 +10,13 @@ public class UISettings : MonoBehaviour
 
     public static Action PlayResumeClicked;
     public static Action PlayMenuClicked;
-    
+    public static Action PlayLoadClicked;
     void Awake(){
         InitButtonEvents();
     }
     private void InitButtonEvents() {
         ResumeButton.onClick.AddListener(OnPlayResumeClicked);
-        // LoadButton.onClick.AddListener(OnClickLoadButton);
+        LoadButton.onClick.AddListener(OnClickLoadButton);
         // SettingsButton.onClick.AddListener(OnClickSettingsButton);
         MenuButton.onClick.AddListener(OnPlayMenuClicked);
     }
@@ -26,5 +26,8 @@ public class UISettings : MonoBehaviour
     }
     void OnPlayMenuClicked(){
         PlayMenuClicked?.Invoke();
+    }
+    void OnClickLoadButton(){
+        PlayLoadClicked?.Invoke();
     }
 }

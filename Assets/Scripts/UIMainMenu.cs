@@ -10,6 +10,8 @@ public class UIMainMenu : MonoBehaviour
     [SerializeField] private Button ExitButton;
 
     public static Action OnPlayButtonClicked;
+    public static bool PlayFromSave { get; private set; }
+
     void Start() {
         InitButtonEvents();
     }
@@ -21,10 +23,15 @@ public class UIMainMenu : MonoBehaviour
         ExitButton.onClick.AddListener(OnClickExitButton);
     }
     void OnClickStartButton(){
+        PlayFromSave = false;
         OnPlayButtonClicked?.Invoke();
         SceneManager.LoadScene("MainPlay");
     }
-    void OnClickLoadButton(){}
+    void OnClickLoadButton(){
+        PlayFromSave = true;
+        OnPlayButtonClicked?.Invoke();
+        SceneManager.LoadScene("MainPlay");
+    }
     void OnClickSettingsButton(){}
     void OnClickExitButton(){}
     

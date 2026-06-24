@@ -27,7 +27,7 @@ public class Monster2Controller : MonoBehaviour
         gameManager = GameManager.instance;
 
         audioSource = gameManager.GetComponent<AudioSource>(); // Lấy AudioSource từ GameObject này
-        killedClip = gameManager.GetKilledAudio();
+        // killedClip = gameManager.GetKilledAudio();
 
         birdPool = GameObject.Find("BirdPool").GetComponent<BirdPooling>();
         animationHandle = GetComponent<AnimationHandle>();
@@ -74,7 +74,7 @@ public class Monster2Controller : MonoBehaviour
         StartCoroutine(DieCoroutine());
         DieEvent?.Invoke();
         Debug.Log("Die");
-        // Destroy(gameObject);       // UnitPool.Instance.ReleaseHolder(this);
+        Destroy(gameObject);       // UnitPool.Instance.ReleaseHolder(this);
     }
     public GameObject Target;
     
@@ -96,7 +96,7 @@ public class Monster2Controller : MonoBehaviour
         Vector3 currentPos = transform.parent != null ? transform.parent.position : transform.position;
 
         Vector3 direction = (Target.transform.position - currentPos).normalized;
-        Vector3 direction_convert = new Vector3(direction.x, 0, direction.z);
+        Vector3 direction_convert = new Vector3(direction.x, direction.y, direction.z);
         
         if (transform.parent != null)
         {

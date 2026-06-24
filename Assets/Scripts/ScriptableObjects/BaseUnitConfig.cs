@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "BaseUnitConfig", menuName = "Scriptable Objects/BaseUnitConfig")]
+[CreateAssetMenu(fileName = "GeckoConfig", menuName = "Scriptable Objects/GeckoConfig")]
 public class BaseUnitConfig : ScriptableObject
 {
 

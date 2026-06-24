@@ -24,7 +24,7 @@ public class MonsterController : MonoBehaviour
     {
         gameManager = GameManager.instance;
         audioSource = gameManager.GetComponent<AudioSource>(); // Lấy AudioSource từ GameObject này
-        killedClip = gameManager.GetKilledAudio();
+        // killedClip = gameManager.GetKilledAudio();
 
         spiderPool = GameObject.Find("SpiderPool").GetComponent<SpiderPooling>();
         animationHandle = GetComponent<AnimationHandle>();
