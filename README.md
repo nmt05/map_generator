@@ -1,15 +1,30 @@
-Key features:
+# 🎮 Controls & Features
 
-RIGHT CLICK -> Place Block
-LEFT CLICK -> Destroy Block
-MIDDLE CLICK -> Select Block (Check the console)
-L -> Save map to .json
-K -> Load map from .json
-E -> Teleport to where u r facing
-H -> Teleport to home where u can select every blocks easily
+## 🖱️ Mouse Controls
 
-Avaiable Map:
-[...][Intro]
+* **Right Click** → Place Block
+* **Left Click** → Destroy Block
+* **Middle Click** → Select Block *(Check the console)*
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+* **L** → Save map to `.json`
+
+* **K** → Load map from `.json`
+
+* **E** → Teleport to where you are facing
+
+* **H** → Teleport to home *(where you can easily select all blocks)*
+
+---
+
+## 🗺️ Available Maps
+
+```
+[ ] Intro
 [X]
 [X]
 [X]
+```
