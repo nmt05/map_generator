@@ -154,6 +154,24 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Tele"",
+                    ""type"": ""Button"",
+                    ""id"": ""176a474b-5571-4c02-a4a1-b98af9f489a3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Home"",
+                    ""type"": ""Button"",
+                    ""id"": ""895bd479-3226-45dd-8b8c-4b868ce774e5"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -288,6 +306,28 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
                     ""action"": ""Dash"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""792ac29b-f01e-441e-b243-1a95be8f7bae"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Tele"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7ababea9-2843-4763-93d6-c8e166830e45"",
+                    ""path"": ""<Keyboard>/h"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Home"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -331,6 +371,8 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
         m_Movement_Shoot = m_Movement.FindAction("Shoot", throwIfNotFound: true);
         m_Movement_Look = m_Movement.FindAction("Look", throwIfNotFound: true);
         m_Movement_Dash = m_Movement.FindAction("Dash", throwIfNotFound: true);
+        m_Movement_Tele = m_Movement.FindAction("Tele", throwIfNotFound: true);
+        m_Movement_Home = m_Movement.FindAction("Home", throwIfNotFound: true);
         // Action
         m_Action = asset.FindActionMap("Action", throwIfNotFound: true);
         m_Action_Esc = m_Action.FindAction("Esc", throwIfNotFound: true);
@@ -422,6 +464,8 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
     private readonly InputAction m_Movement_Shoot;
     private readonly InputAction m_Movement_Look;
     private readonly InputAction m_Movement_Dash;
+    private readonly InputAction m_Movement_Tele;
+    private readonly InputAction m_Movement_Home;
     /// <summary>
     /// Provides access to input actions defined in input action map "Movement".
     /// </summary>
@@ -461,6 +505,14 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Movement/Dash".
         /// </summary>
         public InputAction @Dash => m_Wrapper.m_Movement_Dash;
+        /// <summary>
+        /// Provides access to the underlying input action "Movement/Tele".
+        /// </summary>
+        public InputAction @Tele => m_Wrapper.m_Movement_Tele;
+        /// <summary>
+        /// Provides access to the underlying input action "Movement/Home".
+        /// </summary>
+        public InputAction @Home => m_Wrapper.m_Movement_Home;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -508,6 +560,12 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
             @Dash.started += instance.OnDash;
             @Dash.performed += instance.OnDash;
             @Dash.canceled += instance.OnDash;
+            @Tele.started += instance.OnTele;
+            @Tele.performed += instance.OnTele;
+            @Tele.canceled += instance.OnTele;
+            @Home.started += instance.OnHome;
+            @Home.performed += instance.OnHome;
+            @Home.canceled += instance.OnHome;
         }
 
         /// <summary>
@@ -540,6 +598,12 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
             @Dash.started -= instance.OnDash;
             @Dash.performed -= instance.OnDash;
             @Dash.canceled -= instance.OnDash;
+            @Tele.started -= instance.OnTele;
+            @Tele.performed -= instance.OnTele;
+            @Tele.canceled -= instance.OnTele;
+            @Home.started -= instance.OnHome;
+            @Home.performed -= instance.OnHome;
+            @Home.canceled -= instance.OnHome;
         }
 
         /// <summary>
@@ -725,6 +789,20 @@ public partial class @BasicInput: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnDash(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Tele" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTele(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Home" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHome(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Action" which allows adding and removing callbacks.

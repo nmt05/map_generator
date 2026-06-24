@@ -4,26 +4,23 @@ using System.IO;
 
 public class VoxelPlacementRuntime : MonoBehaviour
 {
-    public enum BuildMode { Place, Eraser }
-
     [Header("Settings")]
-    [SerializeField] private float cellSize = 2f;
-    [SerializeField] private float maxBuildDistance = 20f;
-    [SerializeField] private LayerMask mapLayer;
-    [SerializeField] private string mapParentName = "Map";
+    [SerializeField] public float cellSize = 2f;
+    [SerializeField] public float maxBuildDistance = 20f;
+    [SerializeField] public string mapParentName = "Map";
 
     [Header("Current Selection")]
     public GameObject selectedPrefab; 
-    public BuildMode currentMode = BuildMode.Place;
 
     [Header("Ghost Visual (Optional)")]
-    [SerializeField] private GameObject ghostCubePrefab; 
+    [SerializeField] public GameObject ghostCubePrefab; 
 
-    private Transform _mapParent;
-    private GameObject _ghostInstance;
-    private Camera _mainCamera;
+    public Transform _mapParent;
+    public GameObject _ghostInstance;
+    public Camera _mainCamera;
 
-    private readonly Dictionary<Vector3Int, GameObject> _runtimeBlocks = new();
+    // Quản lý thế giới hoàn toàn bằng dữ liệu tọa độ ngầm
+    public readonly Dictionary<Vector3Int, GameObject> _runtimeBlocks = new();
 
     void Start()
     {
@@ -38,11 +35,9 @@ public class VoxelPlacementRuntime : MonoBehaviour
         if (ghostCubePrefab != null)
         {
             _ghostInstance = Instantiate(ghostCubePrefab);
-            _ghostInstance.transform.position += new Vector3(0, 1f, 0);
             if (_ghostInstance.TryGetComponent<Collider>(out var col)) col.enabled = false;
         }
 
-        // Chỉ LoadGame() bằng JSON khi thực sự đang chơi game
         if (Application.isPlaying)
         {
             // LoadGame();
@@ -54,7 +49,7 @@ public class VoxelPlacementRuntime : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
+    public void OnPlayModeStateChanged(UnityEditor.PlayModeStateChange state)
     {
         if (state == UnityEditor.PlayModeStateChange.ExitingPlayMode)
         {
@@ -67,12 +62,7 @@ public class VoxelPlacementRuntime : MonoBehaviour
             SaveDataWrapper wrapper = JsonUtility.FromJson<SaveDataWrapper>(json);
 
             GameObject mapObj = GameObject.Find(mapParentName);
-            
-            // THAY ĐỔI QUAN TRỌNG: Xóa sạch map cũ trong Editor trước khi vẽ đè map mới để tránh trùng lặp, kẹt hình
-            if (mapObj != null)
-            {
-                UnityEditor.Undo.DestroyObjectImmediate(mapObj);
-            }
+            if (mapObj != null) UnityEditor.Undo.DestroyObjectImmediate(mapObj);
             
             mapObj = new GameObject(mapParentName);
             UnityEditor.Undo.RegisterCreatedObjectUndo(mapObj, "Create Map Parent");
@@ -93,63 +83,64 @@ public class VoxelPlacementRuntime : MonoBehaviour
                     editorBlock.transform.SetParent(mapObj.transform);
                     editorBlock.transform.position = worldPos;
                     editorBlock.transform.rotation = Quaternion.identity;
-
-                    // Đảm bảo gán lại đúng layer Map cho Editor
-                    editorBlock.layer = Mathf.RoundToInt(Mathf.Log(mapLayer.value, 2));
                 }
             }
             
             UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(UnityEditor.SceneManagement.EditorSceneManager.GetActiveScene());
-            Debug.Log("<color=yellow>Đã đồng bộ thành công dữ liệu Player xây vào Scene Editor thật!</color>");
         }
     }
 #endif
 
-    private void OnApplicationQuit()
-    {
-        // SaveGame();
-        Debug.Log("Game đang tắt... Đã kích hoạt Auto Save!");
-    }
+    // public void OnApplicationQuit() => SaveGame();
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.L)) SaveGame();
         if (Input.GetKeyDown(KeyCode.K)) LoadGame();
         
-        HandleVoxelLogic();
+        HandleVoxelLogicWithoutPhysics();
     }
 
-    private void HandleVoxelLogic()
+    // ================= TOÁN HỌC THUẦN TÚY: DÒ Ô KHÔNG DÙNG COLLIDER =================
+    public void HandleVoxelLogicWithoutPhysics()
     {
         if (_mainCamera == null) return;
 
+        // Tạo tia từ tâm màn hình
         Ray ray = _mainCamera.ScreenPointToRay(new Vector3(Screen.width / 2f, Screen.height / 2f, 0)); 
 
-        if (Physics.Raycast(ray, out RaycastHit hit, maxBuildDistance, mapLayer))
+        // Gọi hàm thuật toán DDA kiểm tra xem tia có cắt qua block nào trong Dictionary ko
+        if (VoxelRaycastDDA(ray, maxBuildDistance, out Vector3Int hoverCell, out Vector3Int hitNormal))
         {
-            Vector3 hitBlockCenter = hit.point - hit.normal * 0.01f;
-            Vector3Int hoverCell = WorldToCell(hitBlockCenter);
-
-            Vector3Int hitNormal = Vector3Int.RoundToInt(hit.normal);
             Vector3Int placeCell = hoverCell + hitNormal;
 
+            // Xử lý Ghost Block hiển thị
             if (_ghostInstance != null)
             {
-                _ghostInstance.SetActive(true);
-                Vector3Int targetCell = (currentMode == BuildMode.Place) ? placeCell : hoverCell;
-                _ghostInstance.transform.position = CellToWorld(targetCell);
+                if (!_runtimeBlocks.ContainsKey(placeCell))
+                {
+                    _ghostInstance.SetActive(true);
+                    _ghostInstance.transform.position = CellToWorld(placeCell) + new Vector3(0,1,0);
+                }
+                else if (_runtimeBlocks.ContainsKey(hoverCell))
+                {
+                    _ghostInstance.SetActive(true);
+                    _ghostInstance.transform.position = CellToWorld(hoverCell) + new Vector3(0,1,0) ;
+                }
+                else
+                {
+                    _ghostInstance.SetActive(false);
+                }
             }
 
-            if (Input.GetMouseButtonDown(0)) 
-            {
-                if (currentMode == BuildMode.Place) ExecutePlace(placeCell);
-                else if (currentMode == BuildMode.Eraser) ExecuteErase(hoverCell);
-            }
+            // Click chuột phải = Đặt khối
+            if (Input.GetMouseButtonDown(1)) ExecutePlace(placeCell);
 
-            if (Input.GetMouseButtonDown(2)) 
-            {
-                ExecutePipette(hoverCell);
-            }
+            // Click chuột trái = Phá khối
+            if (Input.GetMouseButtonDown(0)) ExecuteErase(hoverCell);
+
+            // Chuột giữa = Copy khối
+            if (Input.GetMouseButtonDown(2)) ExecutePipette(hoverCell);
         }
         else
         {
@@ -157,17 +148,107 @@ public class VoxelPlacementRuntime : MonoBehaviour
         }
     }
 
-    private void ExecutePlace(Vector3Int cell)
+    // Thuật toán DDA (Digital Differential Analysis) quét lưới 3D tương tự file Editor cũ của bạn
+    public bool VoxelRaycastDDA(Ray ray, float maxDistance, out Vector3Int hitCell, out Vector3Int hitNormal)
     {
-        if (selectedPrefab == null) return;
-        if (_runtimeBlocks.ContainsKey(cell)) return; 
+        Vector3 origin = ray.origin / cellSize;
+        Vector3 direction = ray.direction.normalized;
+
+        Vector3Int current = new Vector3Int(
+            Mathf.FloorToInt(origin.x),
+            Mathf.FloorToInt(origin.y),
+            Mathf.FloorToInt(origin.z)
+        );
+
+        Vector3Int step = new Vector3Int(
+            direction.x >= 0 ? 1 : -1,
+            direction.y >= 0 ? 1 : -1,
+            direction.z >= 0 ? 1 : -1
+        );
+
+        Vector3 tDelta = new Vector3(
+            direction.x == 0 ? float.MaxValue : Mathf.Abs(1f / direction.x),
+            direction.y == 0 ? float.MaxValue : Mathf.Abs(1f / direction.y),
+            direction.z == 0 ? float.MaxValue : Mathf.Abs(1f / direction.z)
+        );
+
+        Vector3 tMax = new Vector3(
+            IntBound(origin.x, direction.x),
+            IntBound(origin.y, direction.y),
+            IntBound(origin.z, direction.z)
+        );
+
+        hitNormal = Vector3Int.zero;
+        float travelled = 0f;
+
+        while (travelled <= (maxDistance / cellSize))
+        {
+            // Kiểm tra trong Dictionary dữ liệu xem ô hiện tại "current" có block nào không
+            if (_runtimeBlocks.ContainsKey(current) && _runtimeBlocks[current] != null)
+            {
+                hitCell = current;
+                return true;
+            }
+
+            if (tMax.x < tMax.y)
+            {
+                if (tMax.x < tMax.z)
+                {
+                    current.x += step.x;
+                    travelled = tMax.x;
+                    tMax.x += tDelta.x;
+                    hitNormal = new Vector3Int(-step.x, 0, 0);
+                }
+                else
+                {
+                    current.z += step.z;
+                    travelled = tMax.z;
+                    tMax.z += tDelta.z;
+                    hitNormal = new Vector3Int(0, 0, -step.z);
+                }
+            }
+            else
+            {
+                if (tMax.y < tMax.z)
+                {
+                    current.y += step.y;
+                    travelled = tMax.y;
+                    tMax.y += tDelta.y;
+                    hitNormal = new Vector3Int(0, -step.y, 0);
+                }
+                else
+                {
+                    current.z += step.z;
+                    travelled = tMax.z;
+                    tMax.z += tDelta.z;
+                    hitNormal = new Vector3Int(0, 0, -step.z);
+                }
+            }
+        }
+
+        hitCell = Vector3Int.zero;
+        hitNormal = Vector3Int.zero;
+        return false;
+    }
+
+    public float IntBound(float s, float ds)
+    {
+        if (ds == 0) return float.MaxValue;
+        if (ds < 0) return IntBound(-s, -ds);
+        s -= Mathf.Floor(s);
+        return (1f - s) / ds;
+    }
+    // =================================================================================
+
+    public void ExecutePlace(Vector3Int cell)
+    {
+        if (selectedPrefab == null || _runtimeBlocks.ContainsKey(cell)) return; 
 
         GameObject newBlock = Instantiate(selectedPrefab, CellToWorld(cell), Quaternion.identity, _mapParent);
-        newBlock.layer = Mathf.RoundToInt(Mathf.Log(mapLayer.value, 2)); 
         _runtimeBlocks[cell] = newBlock;
     }
 
-    private void ExecuteErase(Vector3Int cell)
+    public void ExecuteErase(Vector3Int cell)
     {
         if (_runtimeBlocks.TryGetValue(cell, out GameObject target))
         {
@@ -176,17 +257,33 @@ public class VoxelPlacementRuntime : MonoBehaviour
         }
     }
 
-    private void ExecutePipette(Vector3Int cell)
+public void ExecutePipette(Vector3Int cell)
     {
         if (_runtimeBlocks.TryGetValue(cell, out GameObject target))
         {
-            selectedPrefab = target; 
-            currentMode = BuildMode.Place;
-            Debug.Log($"Đã sao chép khối: {target.name}");
+            if (target == null) return;
+
+            // Lấy tên sạch của block (bỏ chữ (Clone) đi)
+            string cleanName = target.name.Replace("(Clone)", "").Trim();
+
+            // Tìm nạp lại Prefab gốc từ thư mục Resources giống như lúc Load game
+            GameObject originalPrefab = Resources.Load<GameObject>($"Prefabs/NewAssets/GreenMapTiles/{cleanName}");
+            if (originalPrefab == null) originalPrefab = Resources.Load<GameObject>($"Prefabs/NewAssets/Animals/{cleanName}");
+            if (originalPrefab == null) originalPrefab = Resources.Load<GameObject>($"Prefabs/NewAssets/Items/{cleanName}");
+            if (originalPrefab == null) originalPrefab = Resources.Load<GameObject>($"Prefabs/NewAssets/PinkMapTiles/{cleanName}");
+
+            if (originalPrefab != null)
+            {
+                selectedPrefab = originalPrefab; // Gán Prefab gốc làm block hiện tại để xây
+                Debug.Log($"<color=cyan>Pipette:</color> Đã hút thành công khối gốc [{cleanName}]");
+            }
+            else
+            {
+                Debug.LogError($"Không thể hút khối! Không tìm thấy Prefab gốc tên '{cleanName}' trong thư mục Resources.");
+            }
         }
     }
-
-    private void RebuildInitialBlockData()
+    public void RebuildInitialBlockData()
     {
         _runtimeBlocks.Clear();
         if (_mapParent == null) return;
@@ -194,14 +291,11 @@ public class VoxelPlacementRuntime : MonoBehaviour
         foreach (Transform child in _mapParent)
         {
             Vector3Int cell = WorldToCell(child.position);
-            if (!_runtimeBlocks.ContainsKey(cell))
-            {
-                _runtimeBlocks.Add(cell, child.gameObject);
-            }
+            if (!_runtimeBlocks.ContainsKey(cell)) _runtimeBlocks.Add(cell, child.gameObject);
         }
     }
 
-    private Vector3Int WorldToCell(Vector3 world)
+    public Vector3Int WorldToCell(Vector3 world)
     {
         return new Vector3Int(
             Mathf.FloorToInt(world.x / cellSize),
@@ -210,91 +304,50 @@ public class VoxelPlacementRuntime : MonoBehaviour
         );
     }
 
-    private Vector3 CellToWorld(Vector3Int cell)
+    public Vector3 CellToWorld(Vector3Int cell)
     {
-        return new Vector3(
-            cell.x * cellSize,
-            cell.y * cellSize,
-            cell.z * cellSize
-        );
+        return new Vector3(cell.x * cellSize, cell.y * cellSize, cell.z * cellSize);
     }
 
     [Header("Save/Load Settings")]
-    [SerializeField] private string saveFileName = "voxel_map_save.json";
+    [SerializeField] public string saveFileName = "voxel_map_save.json";
 
     public void SaveGame()
     {
         SaveDataWrapper wrapper = new SaveDataWrapper();
-
         foreach (var pair in _runtimeBlocks)
         {
             if (pair.Value == null) continue;
             Vector3Int cell = pair.Key;
-            GameObject blockObj = pair.Value;
-
-            BlockSaveData blockData = new BlockSaveData
-            {
-                x = cell.x,
-                y = cell.y,
-                z = cell.z,
-                prefabName = blockObj.name.Replace("(Clone)", "").Trim()
-            };
-
-            wrapper.allBlocks.Add(blockData);
+            wrapper.allBlocks.Add(new BlockSaveData { x = cell.x, y = cell.y, z = cell.z, prefabName = pair.Value.name.Replace("(Clone)", "").Trim() });
         }
-
-        string json = JsonUtility.ToJson(wrapper, true);
-        string savePath = Path.Combine(Application.persistentDataPath, saveFileName);
-        File.WriteAllText(savePath, json);
-
-        Debug.Log($"<color=green>Đã lưu game thành công tại:</color> {savePath}");
+        File.WriteAllText(Path.Combine(Application.persistentDataPath, saveFileName), JsonUtility.ToJson(wrapper, true));
     }
 
     public void LoadGame()
     {
         string savePath = Path.Combine(Application.persistentDataPath, saveFileName);
-
         if (!File.Exists(savePath)) return;
 
-        foreach (var pair in _runtimeBlocks)
-        {
-            if (pair.Value != null) Destroy(pair.Value);
-        }
+        foreach (var pair in _runtimeBlocks) if (pair.Value != null) Destroy(pair.Value);
         _runtimeBlocks.Clear();
 
-        string json = File.ReadAllText(savePath);
-        SaveDataWrapper wrapper = JsonUtility.FromJson<SaveDataWrapper>(json);
-
+        SaveDataWrapper wrapper = JsonUtility.FromJson<SaveDataWrapper>(File.ReadAllText(savePath));
         foreach (BlockSaveData blockData in wrapper.allBlocks)
         {
             Vector3Int cell = new Vector3Int(blockData.x, blockData.y, blockData.z);
-            
             GameObject prefab = Resources.Load<GameObject>($"Prefabs/NewAssets/GreenMapTiles/{blockData.prefabName}");
             if (prefab == null) prefab = Resources.Load<GameObject>($"Prefabs/NewAssets/Animals/{blockData.prefabName}");
             if (prefab == null) prefab = Resources.Load<GameObject>($"Prefabs/NewAssets/Items/{blockData.prefabName}");
             if (prefab == null) prefab = Resources.Load<GameObject>($"Prefabs/NewAssets/PinkMapTiles/{blockData.prefabName}");
 
-            if (prefab != null)
-            {
-                GameObject newBlock = Instantiate(prefab, CellToWorld(cell), Quaternion.identity, _mapParent);
-                newBlock.layer = Mathf.RoundToInt(Mathf.Log(mapLayer.value, 2));
-                _runtimeBlocks[cell] = newBlock;
-            }
+            if (prefab != null) _runtimeBlocks[cell] = Instantiate(prefab, CellToWorld(cell), Quaternion.identity, _mapParent);
         }
-        Debug.Log("<color=cyan>Đã tải dữ liệu map cũ lên thành công!</color>");
     }
 }
 
-// Sửa cấu trúc phân cấp dấu ngoặc nhọn chuẩn chỉnh ở ngoài Class chính
 [System.Serializable]
-public class BlockSaveData
-{
-    public int x, y, z;
-    public string prefabName; 
-}
+public class BlockSaveData { public int x, y, z; public string prefabName; }
 
 [System.Serializable]
-public class SaveDataWrapper
-{
-    public List<BlockSaveData> allBlocks = new List<BlockSaveData>();
-}
+public class SaveDataWrapper { public List<BlockSaveData> allBlocks = new List<BlockSaveData>(); }

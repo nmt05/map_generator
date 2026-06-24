@@ -16,7 +16,7 @@ public class GameManager : MonoBehaviour
     // public AudioClip killed;
 
     [SerializeField] private Transform UIRoot;
-    [SerializeField] private CameraControl cam;
+    // [SerializeField] private CameraControl cam;
     void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
 
         // Mỗi giây trôi qua, trừ bớt thời gian vào biến đếm ngược
         survivalTimer -= Time.deltaTime;
-        cam.Move();
+        // cam.Move();
         // // KHI THỜI GIAN ĐẾM NGƯỢC VỀ 0 HOẶC NHỎ HƠN 0
         // if (survivalTimer <= 0)
         // {
